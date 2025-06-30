@@ -35,18 +35,22 @@ class Recipe(db.Model, SerializerMixin):
     id=db.Column(db.Integer,primary_key=True)
     user_id=db.Column(db.Integer, db.ForeignKey('users.id'))
     title=db.Column(db.String,nullable=False,unique=True)
-    instructions=db.Column(db.Text,nullable=False)
+    instructions=db.Column(db.String,nullable=False)
     minutes_to_complete=db.Column(db.Integer,nullable=False)
     
-    @property
-    def instructions(self):
-        return self._instructions
-    @instructions.setter
-    def instructions(self,value):
-        if len(value)<50:
-            return ValueError('Intructions have to be 50 characters or longer')
-        else:
-            self._instructions=value
+    @validates('instructions')
+    def validate_instructions(self, key, value):
+        if not value or len(value) < 50:
+            raise ValueError("Instructions must be at least 50 characters long.")
+        return value
     
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'instructions': self.instructions,  # ← missing
+            'minutes_to_complete': self.minutes_to_complete,
+            'user_id': self.user_id,
+        }
     
     
